@@ -1,3 +1,4 @@
+const {sendVerificationEmail} = require("../mailtrap/email");
 const { validationResult } = require("express-validator");
 const userModel = require("../models/user.model");
 const userService = require("../services/user.service");
@@ -23,7 +24,7 @@ module.exports.registerUser = async (req, res, next) => {
     }
 
     const hashedPassword = await userModel.hashPassword(password);
-    const verificationCode = Math.floor(
+    const verificationToken = Math.floor(
       100000 + Math.random() * 900000
     ).toString();
 
@@ -31,7 +32,7 @@ module.exports.registerUser = async (req, res, next) => {
       name,
       email,
       password: hashedPassword,
-      verificationToken: verificationCode,
+      verificationToken: verificationToken,
       verificationTokenExpiresAt: Date.now() + 24 * 60 * 60 * 1000, // 24 hours
     });
 
@@ -42,6 +43,9 @@ module.exports.registerUser = async (req, res, next) => {
       sameSite: "Strict",
       maxAge: 2 * 24 * 60 * 60 * 1000, // 24 hours
     });
+
+    await sendVerificationEmail(user.email , verificationToken);
+
     res.status(201).json({ user, token });
   } catch (error) {
     console.log("Database error:", error);
