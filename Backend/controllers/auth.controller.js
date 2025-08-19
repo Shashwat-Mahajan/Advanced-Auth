@@ -1,4 +1,4 @@
-const {sendVerificationEmail} = require("../mailtrap/email");
+const {sendVerificationEmail,sendWelcomeEmail} = require("../mailtrap/email");
 const { validationResult } = require("express-validator");
 const userModel = require("../models/user.model");
 const userService = require("../services/user.service");
@@ -52,6 +52,33 @@ module.exports.registerUser = async (req, res, next) => {
     return res
       .status(500)
       .json({ message: "Database error", error: error.message });
+  }
+};
+
+module.exports.verifyEmail = async (req, res) => {
+  const {code} = req.body;
+
+  try{
+    const user = await userModel.findOne({
+      verificationToken: code,
+      verificationTokenExpiresAt: { $gt: Date.now() }
+    })
+
+    if(!user){
+      return res.status(400).json({message: "Invalid or expired verification code"});
+    }
+
+    user.isVerified = true;
+    user.verificationToken = undefined;
+    user.verificationTokenExpiresAt = undefined;
+    await user.save();
+
+    await sendWelcomeEmail(user.email, user.name);
+    res.status(200).json({message: "Email verified successfully"});
+
+  }catch(err){
+    console.log("error in verify email:", err);
+    res.status(500).json({message: "Internal server error", error: err.message});
   }
 };
 

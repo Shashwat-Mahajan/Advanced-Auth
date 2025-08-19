@@ -22,3 +22,24 @@ module.exports.sendVerificationEmail = async (email, verificationToken) => {
     throw error;
   }
 };
+
+
+module.exports.sendWelcomeEmail = async (email,name) => {
+    const recipient = [{email}]
+
+    try{
+        const response = await mailTrapClient.send({
+          from: sender,
+          to: recipient,
+          template_uuid: "33932cc5-e982-4eb6-8772-782b1a3caca3",
+          template_variables: {
+            name: name,
+            company_info_name: "Sam Auth",
+          },
+        });
+
+        console.log("Welcome email sent successfully:", response);
+    }catch(err){
+        console.error("Error sending welcome email:", err);
+    }
+}
