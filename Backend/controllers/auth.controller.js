@@ -83,7 +83,28 @@ module.exports.verifyEmail = async (req, res) => {
 };
 
 module.exports.loginUser = async (req, res) => {
-  res.send("login route");
+  const { email, password } = req.body;
+
+  try {
+    const user = await userModel.findOne({ email });
+    if(!user){
+      return res.status(400).json({ message: "Invalid email or password" });
+    }
+
+    const isPasswordValid = await user.comparePassword(password);
+    if(!isPasswordValid){
+      return res.status(400).json({ message: "Invalid email or password" });
+    }
+
+    const token = user.generateAuthToken();
+
+    res.cookie("token", token);
+    res.status(200).json({token, user});
+
+  }catch(error){
+    console.log("error in login:", error);
+    res.status(500).json({message: "Internal server error", error: error.message});
+  }
 };
 
 module.exports.logoutUser = async (req, res) => {
