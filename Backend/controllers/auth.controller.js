@@ -87,5 +87,6 @@ module.exports.loginUser = async (req, res) => {
 };
 
 module.exports.logoutUser = async (req, res) => {
-  res.send("logout route");
+  res.clearCookie("token");
+  res.status(200).json({success:true, message: "Logged out successfully"});
 };
