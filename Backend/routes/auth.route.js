@@ -10,4 +10,5 @@ router.post("/logout", userController.logoutUser);
 
 router.post("/verify-email", userController.verifyEmail);
 
+router.post("/forgot-password", userController.forgotPassword);
 module.exports = router;

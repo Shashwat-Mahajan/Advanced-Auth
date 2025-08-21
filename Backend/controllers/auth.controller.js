@@ -1,4 +1,9 @@
-const {sendVerificationEmail,sendWelcomeEmail} = require("../mailtrap/email");
+const {
+  sendVerificationEmail,
+  sendWelcomeEmail,
+  sendPasswordResetEmail,
+} = require("../mailtrap/email");
+const crypto = require("crypto");
 const { validationResult } = require("express-validator");
 const userModel = require("../models/user.model");
 const userService = require("../services/user.service");
@@ -107,7 +112,35 @@ module.exports.loginUser = async (req, res) => {
   }
 };
 
+
 module.exports.logoutUser = async (req, res) => {
   res.clearCookie("token");
   res.status(200).json({success:true, message: "Logged out successfully"});
 };
+
+module.exports.forgotPassword = async (req, res) => {
+  const {email} = req.body;
+
+  try{
+    const user = await userModel.findOne({ email });
+    if(!user){
+      return res.status(404).json({message: "User not found"});
+    }
+
+    const resetToken = crypto.randomBytes(20).toString("hex");
+    const resetTokenExpiresAt = Date.now() + 1 * 60 * 60 * 1000;
+
+    user.resetPasswordToken = resetToken;
+    user.resetPasswordExpiresAt = resetTokenExpiresAt;
+
+    await user.save();
+
+    await sendPasswordResetEmail(user.email, `${process.env.CLIENT_URL}/reset-password?token=${resetToken}`);
+
+    res.status(200).json({message: "Password reset email sent successfully"});
+
+  }catch(error){
+    console.log("error in forgot password:", error);
+    res.status(500).json({message: "Internal server error", error: error.message});
+  }
+}

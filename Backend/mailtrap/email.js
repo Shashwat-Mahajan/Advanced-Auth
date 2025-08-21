@@ -1,5 +1,5 @@
 const { mailTrapClient, sender } = require("./mailtrap.config");
-const { VERIFICATION_EMAIL_TEMPLATE } = require("./emailTemplate");
+const { VERIFICATION_EMAIL_TEMPLATE, PASSWORD_RESET_REQUEST_TEMPLATE } = require("./emailTemplate");
 
 module.exports.sendVerificationEmail = async (email, verificationToken) => {
   const recipient = [{ email }];
@@ -43,3 +43,22 @@ module.exports.sendWelcomeEmail = async (email,name) => {
         console.error("Error sending welcome email:", err);
     }
 }
+
+module.exports.sendPasswordResetEmail = async (email, resetLink) => {
+  const recipient = [{ email }];
+
+  try {
+    const response = await mailTrapClient.send({
+      from: sender,
+      to: recipient,
+      subject: "Reset your Password",
+      html: PASSWORD_RESET_REQUEST_TEMPLATE.replace("{resetURL}", resetLink),
+      category: "Password Reset",
+    });
+
+    console.log("Password reset email sent successfully:", response);
+  } catch (error) {
+    console.error("Error sending password reset email:", error);
+    throw error;
+  }
+};
