@@ -2,6 +2,7 @@ const {
   sendVerificationEmail,
   sendWelcomeEmail,
   sendPasswordResetEmail,
+  sendResetSuccessEmail,
 } = require("../mailtrap/email");
 const crypto = require("crypto");
 const { validationResult } = require("express-validator");
@@ -141,6 +142,36 @@ module.exports.forgotPassword = async (req, res) => {
 
   }catch(error){
     console.log("error in forgot password:", error);
+    res.status(500).json({message: "Internal server error", error: error.message});
+  }
+}
+
+module.exports.resetPassword = async (req,res) => {
+  try{
+    const {token} = req.params;
+    const {password} = req.body;
+
+    const user = await userModel.findOne({
+      resetPasswordToken: token,
+      resetPasswordExpiresAt: { $gt: Date.now() }
+    });
+
+    if(!user){
+      return res.status(400).json({message: "Invalid or expired reset token"});
+    }
+
+    const hashedPassword = await userModel.hashPassword(password);
+    user.password = hashedPassword;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpiresAt = undefined;
+    await user.save();
+
+    await sendResetSuccessEmail(user.email);
+
+    res.status(200).json({message: "Password reset successfully"});
+
+  }catch(error){
+    console.log("error in reset password:", error);
     res.status(500).json({message: "Internal server error", error: error.message});
   }
 }
