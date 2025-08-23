@@ -175,3 +175,13 @@ module.exports.resetPassword = async (req,res) => {
     res.status(500).json({message: "Internal server error", error: error.message});
   }
 }
+
+module.exports.checkAuth = async (req, res) => {
+  try{
+    const user = req.user;
+    res.status(200).json({ user });
+  }catch(error){
+    console.log("error in check auth:", error);
+    res.status(500).json({message: "Internal server error", error: error.message});
+  }
+}
