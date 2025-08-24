@@ -1,22 +1,24 @@
 const jwt = require("jsonwebtoken");
+const userModel = require("../models/user.model"); // make sure to import
 
-module.exports.verifyToken = async (req,res,next) => {
-    const token = req.cookies.token || req.header("Authorization")?.replace("Bearer ", "");
+module.exports.verifyToken = async (req, res, next) => {
+  const token = req.cookies?.token; // safer access
 
-    
-    (req.headers.authorization && req.headers.authorization.split(" ")[1]) ||
-      req.cookies.token;
+  if (!token) {
+    return res.status(401).json({ message: "No token provided" });
+  }
 
-    try{
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        const user = await userModel.findById(decoded.id);
-        if(!user){
-            return res.status(401).json({ message: "Unauthorized" });
-        }
-        req.user = user;
-        next(); 
-        return res.status(200).json({ user });
-    }catch(error){
-        return res.status(401).json({ message: "Unauthorized" });
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    const user = await userModel.findById(decoded.id);
+    if (!user) {
+      return res.status(401).json({ message: "User not found" });
     }
-}
+
+    req.user = user; // attach user to request
+    next(); // pass control to next middleware / route handler
+  } catch (error) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+};
