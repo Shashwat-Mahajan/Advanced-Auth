@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { User, Mail, Lock, Loader } from "lucide-react";
 import Input from "../components/Input";
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import PasswordStrengthMeter from "../components/PasswordStrengthMeter";
 import { useAuthStore } from "../store/authStore";
 
@@ -11,6 +11,7 @@ const SignUpPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const { signup,error,isLoading } = useAuthStore();
+  const Navigate = useNavigate();
 
   const handleSignUp = async (e) => {
     e.preventDefault();
