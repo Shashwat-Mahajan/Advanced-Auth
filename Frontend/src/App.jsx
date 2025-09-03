@@ -2,6 +2,7 @@ import { Route, Routes } from "react-router-dom";
 import FloatingShapes from "./components/FloatingShapes";
 import SignUpPage from "./pages/SignUpPage";
 import LoginPage from "./pages/LoginPage";
+import Dashboard from "./pages/Dashboard";
 import EmailVerificationPage from "./pages/EmailVerificationPage";
 import { useAuthStore } from "./store/authStore";
 import { useEffect } from "react";
@@ -61,7 +62,7 @@ function App() {
         delay={10}
       />
       <Routes>
-        <Route path="/" element={"Home"} />
+        <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
         <Route path="/signup" element={<RedirectAuthenticatedUser><SignUpPage /></RedirectAuthenticatedUser>} />
         <Route path="/login" element={<RedirectAuthenticatedUser><LoginPage /></RedirectAuthenticatedUser>} />
         <Route path='/verify-email' element={<EmailVerificationPage />} />
